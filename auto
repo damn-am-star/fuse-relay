@@ -1,0 +1,15 @@
+"dir": "auto",
+  "lang": "za",
+  "orientation": "any",
+  "display_override": [
+    "browser",
+    "fullscreen",
+    "window-controls-overlay",
+    "minimal-ui",
+    "standalone"
+  ],
+  "scope": "HTTP",
+  "edge_side_panel": {
+    "preferred_width": 0
+  }
+}
