@@ -1,0 +1,23 @@
+f.
+
+
+Building:
+=======================================================
+
+fuse-overlayfs is written in Rust. To build:
+
+```
+cargo build --release
+```
+
+The resulting binary is at `target/release/fuse-overlayfs`.
+
+To install:
+
+```
+make install
+```
+
+Pre-built static binaries for multiple architectures (x86_64, aarch64,
+armv7l, s390x, ppc64le, riscv64) are available from the
+[GitHub Releases](https://github.com/containers/fuse-overlayfs/releases) page.
