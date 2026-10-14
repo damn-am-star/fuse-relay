@@ -27,11 +27,11 @@ fn stat_times(st: &libc::stat) -> [libc::timespec; 2] {
 }
 
 /// Allocate a unique workdir temporary name and advance the counter.
-fn next_wd_name(wd_counter: &mut u64) -> (String, CString) {
+fn next_wd_name(wd_counter: &mut u64) -> FsResult<(String, CString)> {
     let name = wd_counter.to_string();
     *wd_counter += 1;
-    let c_name = CString::new(name.as_str()).unwrap();
-    (name, c_name)
+    let c_name = crate::error::cstr(&name)?;
+    Ok((name, c_name))
 }
 
 /// Copy xattrs from source fd to destination fd.
@@ -163,7 +163,7 @@ pub fn create_node_directory(
     let times = stat_times(&st);
 
     // Create temp dir in workdir
-    let (wd_name, c_wd_name) = next_wd_name(wd_counter);
+    let (wd_name, c_wd_name) = next_wd_name(wd_counter)?;
 
     let stat_override_mode = upper.stat_override_mode();
     let backing_mode = if stat_override_mode != crate::datasource::StatOverrideMode::None {
@@ -297,7 +297,7 @@ pub fn copyup(
     if file_type == libc::S_IFLNK {
         let target = src_layer.ds.readlinkat(&path)?;
         let c_target = crate::error::cstr_bytes(&target)?;
-        let (_wd_name, c_wd_name) = next_wd_name(wd_counter);
+        let (_wd_name, c_wd_name) = next_wd_name(wd_counter)?;
 
         crate::sys::fs::symlinkat(&c_target, workdir_fd, &c_wd_name)?;
         let _ = crate::sys::fs::fchownat(
@@ -324,7 +324,7 @@ pub fn copyup(
         file_type,
         libc::S_IFCHR | libc::S_IFBLK | libc::S_IFIFO | libc::S_IFSOCK
     ) {
-        let (wd_name, c_wd_name) = next_wd_name(wd_counter);
+        let (wd_name, c_wd_name) = next_wd_name(wd_counter)?;
 
         crate::sys::fs::mknodat(workdir_fd, &c_wd_name, mode, st.st_rdev)?;
         let _ = crate::sys::fs::fchownat(
@@ -364,7 +364,7 @@ pub fn copyup(
     }
 
     // Regular file copy-up
-    let (wd_name, c_wd_name) = next_wd_name(wd_counter);
+    let (wd_name, c_wd_name) = next_wd_name(wd_counter)?;
 
     // Open source
     let sfd = src_layer
